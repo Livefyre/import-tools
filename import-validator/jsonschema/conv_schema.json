@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "schema for importing conversation objects",
+	"title": "Conversation Schema",
+	"type": "object",
+  "required": ["source", "title", "created", "id", "comments"],
+  "additionalProperties": false,
+	"properties": {
+		"source": { "$ref": "#/definitions/url" },
+		"title": { "$ref": "#/definitions/no_html_entities" },
+    "created": { "$ref": "#/definitions/date" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "allow_comments": { "type": "boolean" },
+    "comments": {
+      "type": "array",
+      "items": {
+        "required": ["id", "imported_display_name", "body_html", "author_id", "created"],
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "created": { "$ref": "#/definitions/date" },
+          "parent_id": { "type": "string" },
+          "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "imported_email": { "$ref": "#/definitions/email" },
+          "imported_url": { "$ref": "#/definitions/url" },
+          "body_html": { "not": { "$ref": "#/definitions/invalid_tags"} },
+          "author_id": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "likes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "url": {
+      "type": "string",
+      "pattern": "^http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&amp;=]*)?$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^([0-9]{4})-([0-9]{2})-([0-9]{2})([Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?)?(([Zz]|([+-])([0-9]{2}):([0-9]{2})))$"
+    },
+    "email": {
+      "type": "string",
+      "pattern": "^[\\w.%+-]+@[A-z0-9.-]+\\.[A-z]{2,4}$"
+    },
+    "no_html_entities": {
+      "type": "string",
+      "pattern": "^((?!&\\w+;).)*$"
+    },
+    "invalid_tags": {
+      "type": "string",
+      "pattern": "(?=<(?!/?(?:img(?:\\s+src\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*)|a(?:\\s+(?:href|target)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*){0,2})>))</?[^>]+>"
+    }
+  }
+}
