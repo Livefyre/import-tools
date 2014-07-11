@@ -29,7 +29,7 @@
           "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
           "imported_email": { "$ref": "#/definitions/email" },
           "imported_url": { "$ref": "#/definitions/url" },
-          "body_html": { "not": { "$ref": "#/definitions/invalid_tags"} },
+          "body_html": { "type": "string", "minLength": 1 },
           "author_id": { "type": "string", "minLength": 1, "maxLength": 150 },
           "likes": {
             "type": "array",
