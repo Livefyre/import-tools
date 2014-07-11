@@ -43,7 +43,7 @@
   "definitions": {
     "url": {
       "type": "string",
-      "pattern": "^http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&amp;=]*)?$"
+      "pattern": "^http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w-]./?%&amp;=]*)?$"
     },
     "date": {
       "type": "string",
