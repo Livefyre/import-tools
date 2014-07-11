@@ -6,7 +6,7 @@
   "required": ["source", "title", "created", "id", "comments"],
   "additionalProperties": false,
 	"properties": {
-		"source": { "$ref": "#/definitions/url" },
+		"source": { "type": "string", "minLength": 1 },
 		"title": { "$ref": "#/definitions/no_html_entities" },
     "created": { "$ref": "#/definitions/date" },
     "id": { "type": "string", "minLength": 1, "maxLength": 255 },
@@ -28,7 +28,7 @@
           "parent_id": { "type": "string" },
           "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
           "imported_email": { "$ref": "#/definitions/email" },
-          "imported_url": { "$ref": "#/definitions/url" },
+          "imported_url": { "type": "string", "minLength": 1 },
           "body_html": { "type": "string", "minLength": 1 },
           "author_id": { "type": "string", "minLength": 1, "maxLength": 150 },
           "likes": {
