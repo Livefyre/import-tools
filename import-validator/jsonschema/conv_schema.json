@@ -56,10 +56,6 @@
     "no_html_entities": {
       "type": "string",
       "pattern": "^((?!&\\w+;).)*$"
-    },
-    "invalid_tags": {
-      "type": "string",
-      "pattern": "(?=<(?!/?(?:img(?:\\s+src\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*)|a(?:\\s+(?:href|target)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*){0,2})>))</?[^>]+>"
     }
   }
 }
