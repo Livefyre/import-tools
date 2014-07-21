@@ -70,7 +70,7 @@
   "definitions": {
     "url": {
       "type": "string",
-      "pattern": "^http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&amp;=]*)?$"
+      "pattern": "http\\:\/\/[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,3}(\/\\S*)?"
     },
     "email": {
       "type": "string",
