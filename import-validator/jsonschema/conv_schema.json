@@ -74,7 +74,7 @@
     },
     "encoded_angle_brackets": {
       "type": "string",
-      "pattern": "&lt;([^&]*)&gt;"
+      "pattern": "&lt;[^&]*&gt;"
     }
   }
 }
