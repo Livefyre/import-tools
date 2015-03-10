@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "schema for importing conversation objects",
-	"title": "Conversation Schema",
-	"type": "object",
+  "title": "Conversation Schema",
+  "type": "object",
   "required": ["source", "title", "created", "id", "comments"],
   "additionalProperties": false,
-	"properties": {
-		"source": { "$ref": "#/definitions/url" },
-		"title": { "$ref": "#/definitions/no_html_entities" },
+  "properties": {
+    "source": { "$ref": "#/definitions/url" },
+    "title": { "$ref": "#/definitions/no_html_entities" },
     "created": { "$ref": "#/definitions/date" },
     "id": { "type": "string", "minLength": 1, "maxLength": 255 },
     "tags": {
@@ -29,7 +29,14 @@
           "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
           "imported_email": { "$ref": "#/definitions/email" },
           "imported_url": { "$ref": "#/definitions/url" },
-          "body_html": { "not": { "$ref": "#/definitions/invalid_tags"} },
+          "body_html": { "not": {
+            "anyOf": [
+                { "$ref": "#/definitions/invalid_tags" },
+                { "$ref": "#/definitions/newlines" },
+                { "$ref": "#/definitions/encoded_angle_brackets" }
+              ]
+            }
+          },
           "author_id": { "type": "string", "minLength": 1, "maxLength": 150 },
           "likes": {
             "type": "array",
@@ -60,6 +67,14 @@
     "invalid_tags": {
       "type": "string",
       "pattern": "(?=<(?!/?(?:img(?:\\s+src\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*)|a(?:\\s+(?:href|target)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>"
+    },
+    "newlines": {
+      "type": "string",
+      "pattern": "\\n"
+    },
+    "encoded_angle_brackets": {
+      "type": "string",
+      "pattern": "&lt;([^&]*)&gt;"
     }
   }
 }
