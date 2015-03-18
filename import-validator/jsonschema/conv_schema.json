@@ -35,7 +35,7 @@
           },
           "imported_url": { "anyOf": [
               { "$ref": "#/definitions/url" }, 
-              { "type": "null"}, 
+              { "type": "null" }, 
               { "type": "string", "minLength": 0, "maxLength": 0 }
             ] 
           },
