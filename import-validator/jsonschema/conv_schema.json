@@ -27,8 +27,18 @@
           "created": { "$ref": "#/definitions/date" },
           "parent_id": { "type": "string" },
           "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
-          "imported_email": { "$ref": "#/definitions/email" },
-          "imported_url": { "$ref": "#/definitions/url" },
+          "imported_email": { "anyOf": [
+              { "$ref": "#/definitions/email" }, 
+              { "type": "null"}, 
+              { "type": "string", "minLength": 0, "maxLength": 0 }
+            ]
+          },
+          "imported_url": { "anyOf": [
+              { "$ref": "#/definitions/url" }, 
+              { "type": "null"}, 
+              { "type": "string", "minLength": 0, "maxLength": 0 }
+            ] 
+          },
           "body_html": { "not": {
             "anyOf": [
                 { "$ref": "#/definitions/invalid_tags" },
