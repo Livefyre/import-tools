@@ -1,0 +1,7 @@
+build/
+dist/
+eggs/
+lfvalidator.egg-info
+*.pyc
+validator.spec
+files.txt
