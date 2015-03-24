@@ -1,6 +1,6 @@
 from setuptools import setup
 
-install_require = ['jsonschema', 'requests']
+install_requires = ['jsonschema', 'requests']
 
 setup(name='lfvalidator',
       version='0.1',
@@ -10,5 +10,5 @@ setup(name='lfvalidator',
       author_email='mliao@livefyre.com',
       license='MIT',
       packages=['lfvalidator'],
-      install_require=install_require,
+      install_requires=install_requires,
       zip_safe=False)
