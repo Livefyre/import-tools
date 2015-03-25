@@ -20,7 +20,7 @@ If you would like to contribute to the import validator, you can do so by pullin
 ```
 python setup.py install
 ```
-This will install the lfvalidator in path, so you can now import the package in python. You'll also need to pull down this repo: https://github.com/pyinstaller/pyinstaller
+This will install the lfvalidator in path, so you can now import the package in python. You'll also need to pull down the pyinstaller repo which is used to create the executable: https://github.com/pyinstaller/pyinstaller.
 
 The functionality of the validator is all contained in the lfvalidator/validator.py file. If you want to test local changes made to this file, you can run it as a standalone script.
 ```
