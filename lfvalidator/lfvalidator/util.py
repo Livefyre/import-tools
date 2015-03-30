@@ -5,7 +5,7 @@ import re
 import os
 
 conv_keys = ['source', 'title', 'created', 'comments', 'id', 'tags', 'allow_comments']
-comment_keys = ['id', 'imported_display_name', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
+comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
 
 def sanitize(filename, archive=False):
     skipped_comments = 0
