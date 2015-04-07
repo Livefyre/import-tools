@@ -81,7 +81,7 @@
     },
     "newlines": {
       "type": "string",
-      "pattern": "\\n"
+      "pattern": ".*\\n.*"
     },
     "encoded_angle_brackets": {
       "type": "string",

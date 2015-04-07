@@ -28,8 +28,8 @@ def sanitize(filename, archive=False):
         conv['id'] = str(conv['id'])
         if conv['created'][-1] != 'Z' and '+' not in conv['created']:
             conv['created'] = conv['created'] + 'Z'
-        if not conv['comments']:
-            continue
+        # if not conv['comments']:
+        #     continue
         for comment in conv['comments']:
             for k in comment.keys():
                 if k not in comment_keys:

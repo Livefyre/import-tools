@@ -106,7 +106,6 @@ def print_error(error, line, outf, counter):
         key = error.path.pop()
         msg = '%s value violates %s rule' % (key, error.validator)
     else:
-        #import pdb; pdb.set_trace()
         try:
             # the rest all follow the same pattern
             key = error.path.pop()
@@ -125,8 +124,8 @@ def print_error(error, line, outf, counter):
             print 'No key for error \"%s\"' % e
     if error.path:
         msg += ' in comment with ID %s' % str(line['comments'][error.path.pop()]['id'])
-    print msg
-    outf.write(msg + '\n')
+    print msg.encode('utf8')
+    outf.write(msg.encode('utf8') + '\n')
     k = error.validator + ',' + key
     counter[k] += 1
 
