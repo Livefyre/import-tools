@@ -89,7 +89,7 @@
     },
     "double_backslash": {
       "type": "string",
-      "pattern": "\\\\.*"
+      "pattern": "\\\\[^\\s]*"
     }
   }
 }

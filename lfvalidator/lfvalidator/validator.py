@@ -15,16 +15,26 @@ invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\'
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
 new_lines = re.compile(r'\n')
 escaped_angle_brackets = re.compile(r'&lt;[^&]*&gt;')
+double_backslash = re.compile(r'\\[^\s]*')
+
+critical_error_map = {
+    'Bad HTML tags': 'has_bad_tags',
+    'Bad line breaks': 'has_bad_newlines',
+    'Encoded angle brackets': 'has_bad_brackets',
+    'Escaped backslashes': 'has_bad_backslashes'
+}
 
 critical_flags = {
     'has_bad_tags': False,
     'has_bad_brackets': False,
-    'has_bad_newlines': False
+    'has_bad_newlines': False,
+    'has_bad_backslashes': False,
 }
 
 critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please check http://answers.livefyre.com/developers/imports/comment-import/ to see what tags are allowed. All invalid tags will not be imported correctly.',
     'has_bad_brackets': 'Your file has encoded angle brackets in comment bodies. Any HTML tags in comments do not need to be HTML escaped; they should appear as "<p>", not "%lt;p%gt;". If they are encoded they will not be interpreted correctly and will be printed verbatim.',
-    'has_bad_newlines': 'Your file has newlines characters "\\n" which will not be interpreted correctly. Line breaks must be represented as either "</p><p>"" or "<br>". Any "\\n" values will be printed verbatim.'
+    'has_bad_newlines': 'Your file has newlines characters "\\n" which will not be interpreted correctly. Line breaks must be represented as either "</p><p>"" or "<br>". Any "\\n" values will be printed verbatim.',
+    'has_bad_backslashes': 'Your file has escaped (double) backslashes. Escaped backslashes will be interpretted as a literal backslash. If this is not what you want, please use single backslashes for special encodings.'
 }
 
 def validate(infile, outfile='validator_results.txt'):
@@ -39,8 +49,7 @@ def validate(infile, outfile='validator_results.txt'):
     counter = defaultdict(int)
     count = 0
 
-    for l in inf:
-        count += 1
+    for i,l in enumerate(inf):
         try:
             j = json.loads(l)
             l = unicode(l)
@@ -48,14 +57,13 @@ def validate(infile, outfile='validator_results.txt'):
             errors = sorted(v.iter_errors(j), key=lambda e: e.path)
             if not errors:
                 continue
-            print '\nErrors on line %d:' % count
-            outf.write('\nErrors on line %d:\n' % count )
+            print '\nErrors on line %d:' % (i+1)
+            outf.write('\nErrors on line %d:\n' % (i+1))
             for error in errors:
                 print_error(error, j, outf, counter)
-        except Exception, e:
-            print e
-            print '\nError, bad JSON on line %d' % count
-            outf.write('\nError, bad JSON on line %d\n' % count)
+        except ValueError, e:
+            print '\nError, bad JSON on line %d' % (i+1)
+            outf.write('\nError, bad JSON on line %d\n' % (i+1))
             counter['unicode'] += 1
             continue
     end = time.time()
@@ -111,15 +119,18 @@ def print_error(error, line, outf, counter):
             key = error.path.pop()
             msg = '%s %s' %  (key, error_msg[key])
             if key == 'body_html':
-                bad_tags = invalid_tags.findall(line['comments'][error.path[1]]['body_html'])
-                bad_newlines = new_lines.findall(line['comments'][error.path[1]]['body_html'])
+                body_val = line['comments'][error.path[1]]['body_html']
+                bad_tags = invalid_tags.findall(body_val)
+                bad_newlines = new_lines.findall(body_val)
                 bad_newlines = ['\\n' if x == '\n' else x for x in bad_newlines]
-                bad_brackets = escaped_angle_brackets.findall(line['comments'][error.path[1]]['body_html'])
-                bad_dict = {'Bad HTML tags': bad_tags, 'Bad line breaks': bad_newlines, 'Encoded angle brackets': bad_brackets}
+                bad_brackets = escaped_angle_brackets.findall(body_val)
+                bad_backslashes = double_backslash.findall(body_val)
+                bad_backslashes = [s.replace('\\', '\\\\') for s in bad_backslashes]
+                bad_dict = {'Bad HTML tags': bad_tags, 'Bad line breaks': bad_newlines, 'Encoded angle brackets': bad_brackets, 'Escaped backslashes': bad_backslashes}
                 for k,v in bad_dict.items():
-                    set_critical_messages(bad_dict)
                     if v:
                         msg += '\n%s: ' % k + ', '.join(v)
+                set_critical_messages(bad_dict)
         except Exception,e:
             print 'No key for error \"%s\"' % e
     if error.path:
@@ -130,14 +141,9 @@ def print_error(error, line, outf, counter):
     counter[k] += 1
 
 def set_critical_messages(errors_dict):
-    vals_to_check = [k for k,v in critical_flags.iteritems() if v == False]
-    for _ in vals_to_check:
-        if errors_dict['Bad HTML tags']:
-            critical_flags['has_bad_tags'] = True
-        if errors_dict['Bad line breaks']:
-            critical_flags['has_bad_newlines'] = True
-        if errors_dict['Encoded angle brackets']:
-            critical_flags['has_bad_brackets'] = True
+    vals_to_check = [critical_error_map[k] for k,v in errors_dict.iteritems() if len(v)]
+    for k in vals_to_check:
+        critical_flags[k] = True
 
 def generate_receipt(filename, outf):
     receipt = open('receipt.txt', 'w')
