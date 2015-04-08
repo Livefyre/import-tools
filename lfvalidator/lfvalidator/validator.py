@@ -10,7 +10,7 @@ import time
 import hashlib
 
 error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
-error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length'}
+error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
 new_lines = re.compile(r'\n')
@@ -61,10 +61,13 @@ def validate(infile, outfile='validator_results.txt'):
             outf.write('\nErrors on line %d:\n' % (i+1))
             for error in errors:
                 print_error(error, j, outf, counter)
+            check_parent_ids(j, counter)
         except ValueError, e:
             print '\nError, bad JSON on line %d' % (i+1)
             outf.write('\nError, bad JSON on line %d\n' % (i+1))
             counter['unicode'] += 1
+            continue
+        except:
             continue
     end = time.time()
     delta = end - start
@@ -75,7 +78,7 @@ def validate(infile, outfile='validator_results.txt'):
 
     print '\nFile has %d total errors' % sum(counter.values())
     outf.write('\nFile has %d total errors\n' % sum(counter.values()))
-    print '%d lines processed in %s seconds' % (count, delta)
+    print '%d lines processed in %s seconds' % (i+1, delta)
     outf.write('%d lines processed in %s seconds\n' % (count, delta))
     
     inf.close()
@@ -144,6 +147,20 @@ def set_critical_messages(errors_dict):
     vals_to_check = [critical_error_map[k] for k,v in errors_dict.iteritems() if len(v)]
     for k in vals_to_check:
         critical_flags[k] = True
+
+def check_parent_ids(conv, counter):
+    if not conv['comments']:
+        return
+    parent_ids = []
+    for comment in conv['comments']:
+        parent_ids.append(comment['id'])
+        parent_id = comment.get('parent_id')
+        if parent_id:
+            if parent_id not in parent_ids:
+                print 'Comment %s refers to non-existent parent ID %s' % (comment['id'], parent_id)
+                k = 'invalid,parent_id'
+                counter[k] += 1
+
 
 def generate_receipt(filename, outf):
     receipt = open('receipt.txt', 'w')
