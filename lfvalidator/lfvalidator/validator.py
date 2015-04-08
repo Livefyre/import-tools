@@ -10,7 +10,7 @@ import time
 import hashlib
 
 error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
-error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID'}
+error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
 new_lines = re.compile(r'\n')
@@ -32,7 +32,7 @@ critical_flags = {
 }
 
 critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please check http://answers.livefyre.com/developers/imports/comment-import/ to see what tags are allowed. All invalid tags will not be imported correctly.',
-    'has_bad_brackets': 'Your file has encoded angle brackets in comment bodies. Any HTML tags in comments do not need to be HTML escaped; they should appear as "<p>", not "%lt;p%gt;". If they are encoded they will not be interpreted correctly and will be printed verbatim.',
+    'has_bad_brackets': 'Your file has encoded angle brackets in comment bodies. Any HTML tags in comments do not need to be HTML escaped; they should appear as "<p>", not "&lt;p&gt;". If they are encoded they will not be interpreted correctly and will be printed verbatim.',
     'has_bad_newlines': 'Your file has newlines characters "\\n" which will not be interpreted correctly. Line breaks must be represented as either "</p><p>"" or "<br>". Any "\\n" values will be printed verbatim.',
     'has_bad_backslashes': 'Your file has escaped (double) backslashes. Escaped backslashes will be interpretted as a literal backslash. If this is not what you want, please use single backslashes for special encodings.'
 }
@@ -48,17 +48,22 @@ def validate(infile, outfile='validator_results.txt'):
 
     counter = defaultdict(int)
     count = 0
+    conv_ids = []
+    validator = Draft4Validator(schema)
 
     for i,l in enumerate(inf):
         try:
             j = json.loads(l)
-            l = unicode(l)
-            v = Draft4Validator(schema)
-            errors = sorted(v.iter_errors(j), key=lambda e: e.path)
+            errors = sorted(validator.iter_errors(j), key=lambda e: e.path)
             if not errors:
                 continue
             print '\nErrors on line %d:' % (i+1)
             outf.write('\nErrors on line %d:\n' % (i+1))
+            if j['id'] in conv_ids:
+                print 'Duplicate id field for collection id %s.' % j['id']
+                k = 'duplicate conv,id'
+                counter[k] += 1
+            conv_ids.append(j['id'])
             for error in errors:
                 print_error(error, j, outf, counter)
             check_parent_ids(j, counter)
@@ -152,12 +157,18 @@ def check_parent_ids(conv, counter):
     if not conv['comments']:
         return
     parent_ids = []
+    comment_ids = []
     for comment in conv['comments']:
         parent_ids.append(comment['id'])
+        if comment['id'] in comment_ids:
+            print 'Duplicate id field for comment id %s' % comment['id']
+            k = 'duplicate comment,id'
+            counter[k] += 1
+        comment_ids.append(comment['id'])
         parent_id = comment.get('parent_id')
         if parent_id:
             if parent_id not in parent_ids:
-                print 'Comment %s refers to non-existent parent ID %s' % (comment['id'], parent_id)
+                print 'Comment with id %s refers to non-existent parent_id %s' % (comment['id'], parent_id)
                 k = 'invalid,parent_id'
                 counter[k] += 1
 
