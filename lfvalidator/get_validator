@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ ! -d "$HOME/import-tools" ]; then
+	cd $HOME
+	git clone https://github.com/Livefyre/import-tools.git
+else
+	cd $HOME/import-tools
+	git stash && git pull origin master
+fi
+
+cp $HOME/import-tools/lfvalidator/validator $HOME/Desktop
+cp $HOME/import-tools/lfvalidator/validator $HOME
+
+echo -e "\nPut validator in $HOME and on Desktop\n"
