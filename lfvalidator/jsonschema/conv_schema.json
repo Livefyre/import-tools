@@ -43,8 +43,7 @@
             "anyOf": [
                 { "$ref": "#/definitions/invalid_tags" },
                 { "$ref": "#/definitions/newlines" },
-                { "$ref": "#/definitions/encoded_angle_brackets" },
-                { "$ref": "#/definitions/double_backslash" }
+                { "$ref": "#/definitions/encoded_angle_brackets" }
               ]
             }
           },
