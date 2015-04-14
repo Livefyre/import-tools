@@ -6,8 +6,10 @@ import os
 
 conv_keys = ['source', 'title', 'created', 'comments', 'id', 'tags', 'allow_comments']
 comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
+user_keys = ['id', 'display_name', 'tags', 'name', 'email', 'profile_url', 'settings_url', 'websites', 'location', 'bio', 'email_notifications', 'autofollow_conversations']
+email_keys = ['comments', 'moderator_comments', 'moderator_flags', 'replies', 'likes']
 
-def sanitize(filename, archive=False):
+def sanitize(filename, is_archive=False):
     skipped_comments = 0
     skipped_convs = 0
     inf = open(filename)
@@ -28,13 +30,11 @@ def sanitize(filename, archive=False):
         conv['id'] = str(conv['id'])
         if conv['created'][-1] != 'Z' and '+' not in conv['created']:
             conv['created'] = conv['created'] + 'Z'
-        # if not conv['comments']:
-        #     continue
         for comment in conv['comments']:
             for k in comment.keys():
                 if k not in comment_keys:
                     comment.pop(k)
-            if archive and 'author_id' not in comment:
+            if is_archive and 'author_id' not in comment:
                 try:
                     clean_display_name = re.sub(r'[^\x00-\x7F]+',' ', comment['imported_display_name'])
                     comment['author_id'] = md5(clean_display_name).hexdigest()
@@ -64,3 +64,31 @@ def sanitize(filename, archive=False):
         f.close()
 
     return outf.name
+
+def sanitize_users(filename):
+    skipped_users = 0
+    inf = open(filename)
+    outf = open('fixed_%s' % os.path.basename(filename), 'w')
+
+    for i, line in enumerate(inf):
+        try:
+            user = json.loads(line)
+        except ValueError, e:
+            outf.write('Error on line %d: %s' % (i+1,e))
+            skipped_users += 1
+            continue
+        for k in user.keys():
+            if k not in user_keys:
+                user.pop(k)
+        user['id'] = str(user['id'])
+        if user.get('email_notifications'):
+            for k in user['email_notifications'].keys():
+                if k not in email_keys:
+                    user['email_notifications'].pop(k)
+        outf.write(json.dumps(user) + '\n')
+
+    for f in [inf, outf]:
+        f.close()
+
+    return outf.name
+
