@@ -9,7 +9,7 @@ import sys
 import time
 import hashlib
 
-error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
+error_msg = {'body_html': 'possibly has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
 error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
@@ -31,19 +31,20 @@ critical_flags = {
     'has_bad_backslashes': False,
 }
 
-critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please check http://answers.livefyre.com/developers/imports/comment-import/ to see what tags are allowed. All invalid tags will not be imported correctly.',
+critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please check http://answers.livefyre.com/developers/imports/comment-import/ to see what tags are allowed. All invalid tags will be parsed out.',
     'has_bad_brackets': 'Your file has encoded angle brackets in comment bodies. Any HTML tags in comments do not need to be HTML escaped; they should appear as "<p>", not "&lt;p&gt;". If they are encoded they will not be interpreted correctly and will be printed verbatim.',
     'has_bad_newlines': 'Your file has newlines characters "\\n" which will not be interpreted correctly. Line breaks must be represented as either "</p><p>"" or "<br>". Any "\\n" values will be printed verbatim.',
     'has_bad_backslashes': 'Your file has escaped (double) backslashes. Escaped backslashes will be interpretted as a literal backslash. If this is not what you want, please use single backslashes for special encodings.'
 }
 
-def validate(infile, outfile='validator_results.txt'):
+def validate(infile, outfile='validator_results.txt', is_archive=False):
     start = time.time()
-    cleaned_file = sanitize(infile)
+    cleaned_file = sanitize(infile, is_archive)
     inf = open(cleaned_file)
     outf = open(outfile, 'w')
+    timestamp = str(int(time.time()))
 
-    r = requests.get('https://raw.githubusercontent.com/Livefyre/integration-tools/master/lfvalidator/jsonschema/conv_schema.json')
+    r = requests.get('https://raw.githubusercontent.com/Livefyre/integration-tools/master/lfvalidator/jsonschema/conv_schema.json?%s' % timestamp)
     schema = json.loads(r.text)
 
     counter = defaultdict(int)
@@ -132,8 +133,9 @@ def print_error(error, line, outf, counter):
                 bad_newlines = new_lines.findall(body_val)
                 bad_newlines = ['\\n' if x == '\n' else x for x in bad_newlines]
                 bad_brackets = escaped_angle_brackets.findall(body_val)
-                bad_backslashes = double_backslash.findall(body_val)
-                bad_backslashes = [s.replace('\\', '\\\\') for s in bad_backslashes]
+                # bad_backslashes = double_backslash.findall(body_val)
+                # bad_backslashes = [s.replace('\\', '\\\\') for s in bad_backslashes]
+                bad_backslashes = [] # take out double backslash check for now
                 bad_dict = {'Bad HTML tags': bad_tags, 'Bad line breaks': bad_newlines, 'Encoded angle brackets': bad_brackets, 'Escaped backslashes': bad_backslashes}
                 for k,v in bad_dict.items():
                     if v:
@@ -187,7 +189,7 @@ def generate_receipt(filename, outf):
 def main():
     args = sys.argv[1:]
     if len(args) not in (1,2,3):
-        print 'Usage: python import_validator.py [input file] [~optional schema file] [~optional output file]'
+        print 'Usage: python import_validator.py [input file] [~optional output file]'
         sys.exit(0)
     validate(*args)
 
