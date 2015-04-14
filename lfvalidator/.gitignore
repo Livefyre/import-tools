@@ -3,5 +3,5 @@ dist/
 eggs/
 lfvalidator.egg-info
 *.pyc
-validator.spec
+*.spec
 files.txt
