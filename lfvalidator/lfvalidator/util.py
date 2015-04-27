@@ -28,7 +28,7 @@ def sanitize(filename, is_archive=False):
             if k not in conv_keys:
                 conv.pop(k)
         conv['id'] = str(conv['id'])
-        if conv['created'][-1] != 'Z' and '+' not in conv['created']:
+        if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
             conv['created'] = conv['created'] + 'Z'
         for comment in conv['comments']:
             for k in comment.keys():
@@ -49,7 +49,7 @@ def sanitize(filename, is_archive=False):
                 if comment['parent_id'] == "0" or comment['parent_id'] == "" or comment['parent_id'] == 'None':
                     comment.pop('parent_id')
             comment['id'] = str(comment['id'])
-            if comment['created'][-1] != 'Z' and '+' not in comment['created']:
+            if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
                 comment['created'] = comment['created'] + 'Z'
             cleaned_comments.append(comment)
         conv.pop('comments')
