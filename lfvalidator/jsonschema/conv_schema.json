@@ -26,7 +26,7 @@
           "id": { "type": "string", "minLength": 1 },
           "created": { "$ref": "#/definitions/date" },
           "parent_id": { "type": "string" },
-          "imported_display_name": { "type": "string", "minLength": 1, "maxLength": 150 },
+          "imported_display_name": { "type": "string", "minLength": 0, "maxLength": 150 },
           "imported_email": { "anyOf": [
               { "$ref": "#/definitions/email" }, 
               { "type": "null"}, 
