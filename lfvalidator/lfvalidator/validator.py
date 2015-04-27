@@ -9,7 +9,7 @@ import sys
 import time
 import hashlib
 
-error_msg = {'body_html': 'possibly has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
+error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
 error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
@@ -61,13 +61,14 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
             print '\nErrors on line %d:' % (i+1)
             outf.write('\nErrors on line %d:\n' % (i+1))
             if j['id'] in conv_ids:
-                print 'Duplicate id field for collection id %s.' % j['id']
+                print 'Duplicate id field for collection id %s' % j['id']
+                outf.write('Duplicate id field for collection id %s\n' % j['id'])
                 k = 'duplicate conv,id'
                 counter[k] += 1
             conv_ids.append(j['id'])
             for error in errors:
                 print_error(error, j, outf, counter)
-            check_parent_ids(j, counter)
+            check_parent_ids(j, counter, outf)
         except ValueError, e:
             print '\nError, bad JSON on line %d' % (i+1)
             outf.write('\nError, bad JSON on line %d\n' % (i+1))
@@ -78,33 +79,39 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
     end = time.time()
     delta = end - start
 
-    print '\nError summary:'
-    print_summary(counter)
-    print_critical_errors()
+    
+    print_summary(counter, outf)
+    print_critical_errors(outf)
 
     print '\nFile has %d total errors' % sum(counter.values())
     outf.write('\nFile has %d total errors\n' % sum(counter.values()))
     print '%d lines processed in %s seconds' % (i+1, delta)
-    outf.write('%d lines processed in %s seconds\n' % (count, delta))
+    outf.write('%d lines processed in %s seconds\n' % (i+1, delta))
     
     inf.close()
-    generate_receipt(outfile, outf)
+    # generate_receipt(outfile, outf)
     outf.close()
 
-def print_summary(counter):
+def print_summary(counter, outf):
+    print '\nError summary:'
+    outf.write('\nError summary:\n')
     for k,v in counter.iteritems():
         try:
             keys = k.split(',')
             reason, field = error_summary[keys[0]], keys[1]
             print '%d errors were due to %s on field %s' % (v, reason, field)
+            outf.write('%d errors were due to %s on field %s\n' % (v, reason, field))
         except KeyError:  #this has problems, could be due to print error
             print '%d errors were due to invalid JSON' % v
+            outf.write('%d errors were due to invalid JSON\n' % v)
 
-def print_critical_errors():
+def print_critical_errors(outf):
     print '\nCritical issues:'
+    outf.write('\nCritical issues:\n')
     critical_errors = [k for k,v in critical_flags.iteritems() if v == True]
     for g in critical_errors:
         print critical_error_msgs[g]
+        outf.write('%s\n' % critical_error_msgs[g])
 
 def print_error(error, line, outf, counter):
     if error.validator == 'type':
@@ -155,7 +162,7 @@ def set_critical_messages(errors_dict):
     for k in vals_to_check:
         critical_flags[k] = True
 
-def check_parent_ids(conv, counter):
+def check_parent_ids(conv, counter, outf):
     if not conv['comments']:
         return
     parent_ids = []
@@ -164,6 +171,7 @@ def check_parent_ids(conv, counter):
         parent_ids.append(comment['id'])
         if comment['id'] in comment_ids:
             print 'Duplicate id field for comment id %s' % comment['id']
+            outf.write('Duplicate id field for comment id %s\n' % comment['id'])
             k = 'duplicate comment,id'
             counter[k] += 1
         comment_ids.append(comment['id'])
@@ -171,6 +179,7 @@ def check_parent_ids(conv, counter):
         if parent_id:
             if parent_id not in parent_ids:
                 print 'Comment with id %s refers to non-existent parent_id %s' % (comment['id'], parent_id)
+                outf.write('Comment with id %s refers to non-existent parent_id %s\n' % (comment['id'], parent_id))
                 k = 'invalid,parent_id'
                 counter[k] += 1
 

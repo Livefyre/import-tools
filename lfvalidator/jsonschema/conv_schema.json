@@ -76,7 +76,7 @@
     },
     "invalid_tags": {
       "type": "string",
-      "pattern": "(?=<(?!/?(?:img(?:\\s+src\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*)|a(?:\\s+(?:href|target)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>"
+      "pattern": "(?i)(?=<(?!/?(?:img(?:\\s+src\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*)|a(?:\\s+(?:href|target)\\s*=\\s*(?:\"[^\"]*\"|'[^']*')\\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>"
     },
     "newlines": {
       "type": "string",
