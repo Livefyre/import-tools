@@ -10,7 +10,7 @@ import time
 import hashlib
 
 error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
-error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
+error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'anyOf': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
 new_lines = re.compile(r'\n')
@@ -72,7 +72,7 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
         except ValueError, e:
             print '\nError, bad JSON on line %d' % (i+1)
             outf.write('\nError, bad JSON on line %d\n' % (i+1))
-            counter['unicode'] += 1
+            counter['bad json,'] += 1
             continue
         except:
             continue
@@ -98,12 +98,14 @@ def print_summary(counter, outf):
     for k,v in counter.iteritems():
         try:
             keys = k.split(',')
+            if keys[0] == 'bad json':
+                print '%d errors were due to invalid JSON' % v
+                outf.write('%d errors were due to invalid JSON' % v)
             reason, field = error_summary[keys[0]], keys[1]
             print '%d errors were due to %s on field %s' % (v, reason, field)
             outf.write('%d errors were due to %s on field %s\n' % (v, reason, field))
-        except KeyError:  #this has problems, could be due to print error
-            print '%d errors were due to invalid JSON' % v
-            outf.write('%d errors were due to invalid JSON\n' % v)
+        except:
+            continue
 
 def print_critical_errors(outf):
     print '\nCritical issues:'
