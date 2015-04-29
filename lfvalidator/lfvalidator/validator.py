@@ -100,7 +100,7 @@ def print_summary(counter, outf):
             keys = k.split(',')
             if keys[0] == 'bad json':
                 print '%d errors were due to invalid JSON' % v
-                outf.write('%d errors were due to invalid JSON' % v)
+                outf.write('%d errors were due to invalid JSON\n' % v)
             reason, field = error_summary[keys[0]], keys[1]
             print '%d errors were due to %s on field %s' % (v, reason, field)
             outf.write('%d errors were due to %s on field %s\n' % (v, reason, field))

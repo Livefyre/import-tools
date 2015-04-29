@@ -20,16 +20,20 @@ def sanitize(filename, is_archive=False):
         try:
             conv = json.loads(line)
         except Exception, e:
-            outf.write('Error on line %d: %s' % (i+1,e))
+            results.write('Error on line %d: %s, here is the line:\n\n%s\n' % (i+1,e, line))
             skipped_convs += 1
+            # we write out bad JSON lines anyway, just so line numbers referenced in the validator errors are consistent with the original file
+            outf.write(line)
             continue
         cleaned_comments = []
         for k in conv.keys():
             if k not in conv_keys:
                 conv.pop(k)
-        conv['id'] = str(conv['id'])
-        if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
-            conv['created'] = conv['created'] + 'Z'
+        if 'id' in conv:
+            conv['id'] = str(conv['id'])
+        if 'created' in conv:
+            if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
+                conv['created'] = conv['created'] + 'Z'
         for comment in conv['comments']:
             for k in comment.keys():
                 if k not in comment_keys:
@@ -48,11 +52,12 @@ def sanitize(filename, is_archive=False):
                 comment['parent_id'] = str(comment['parent_id'])
                 if comment['parent_id'] == "0" or comment['parent_id'] == "" or comment['parent_id'] == 'None':
                     comment.pop('parent_id')
-            comment['id'] = str(comment['id'])
-            if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
-                comment['created'] = comment['created'] + 'Z'
+            if 'id' in comment:
+                comment['id'] = str(comment['id'])
+            if 'created' in conv:
+                if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
+                    comment['created'] = comment['created'] + 'Z'
             cleaned_comments.append(comment)
-        conv.pop('comments')
         conv['comments'] = cleaned_comments
         outf.write(json.dumps(conv) + '\n')
 
