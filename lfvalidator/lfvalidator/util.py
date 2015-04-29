@@ -9,11 +9,13 @@ comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url',
 user_keys = ['id', 'display_name', 'tags', 'name', 'email', 'profile_url', 'settings_url', 'websites', 'location', 'bio', 'email_notifications', 'autofollow_conversations']
 email_keys = ['comments', 'moderator_comments', 'moderator_flags', 'replies', 'likes']
 
-def sanitize(filename, is_archive=False):
+def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
     skipped_comments = 0
     skipped_convs = 0
+    if not outfile:
+        outfile = 'fixed_%s' % os.path.basename(filename)
     inf = open(filename)
-    outf = open('fixed_%s' % os.path.basename(filename), 'w')
+    outf = open(outfile, 'w')
     results = open('sanitze_results.txt', 'w')
 
     for i, line in enumerate(inf):
@@ -34,31 +36,14 @@ def sanitize(filename, is_archive=False):
         if 'created' in conv:
             if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
                 conv['created'] = conv['created'] + 'Z'
-        for comment in conv['comments']:
-            for k in comment.keys():
-                if k not in comment_keys:
-                    comment.pop(k)
-            if is_archive and 'author_id' not in comment:
-                try:
-                    clean_display_name = re.sub(r'[^\x00-\x7F]+',' ', comment['imported_display_name'])
-                    comment['author_id'] = md5(clean_display_name).hexdigest()
-                except Exception, e:
-                    outf.write('%s' % e)
-                    skipped_comments += 1
-                    continue
-            if 'author_id' in comment:
-                comment['author_id'] = str(comment['author_id'])
-            if 'parent_id' in comment:
-                comment['parent_id'] = str(comment['parent_id'])
-                if comment['parent_id'] == "0" or comment['parent_id'] == "" or comment['parent_id'] == 'None':
-                    comment.pop('parent_id')
-            if 'id' in comment:
-                comment['id'] = str(comment['id'])
-            if 'created' in conv:
-                if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
-                    comment['created'] = comment['created'] + 'Z'
-            cleaned_comments.append(comment)
-        conv['comments'] = cleaned_comments
+        if 'allow_comments' in conv:
+            if conv['allow_comments'] == 'false':
+                conv['allow_comments'] = False
+        if remove_comments and 'comments' in conv:
+            conv['is_archive'] = True
+            conv['archive_count'] = len(conv['comments'])
+            conv.pop('comments')
+        conv['comments'] = sanitize_comments(conv, is_archive)
         outf.write(json.dumps(conv) + '\n')
 
     results.write('cleaned file: %s\n' % outf.name)
@@ -69,6 +54,36 @@ def sanitize(filename, is_archive=False):
         f.close()
 
     return outf.name
+
+def sanitize_comments(conv, is_archive):
+    cleaned_comments = []
+    if 'comments' not in conv:
+        return []
+    for comment in conv['comments']:
+        for k in comment.keys():
+            if k not in comment_keys:
+                comment.pop(k)
+        if is_archive and 'author_id' not in comment:
+            try:
+                clean_display_name = re.sub(r'[^\x00-\x7F]+',' ', comment['imported_display_name'])
+                comment['author_id'] = md5(clean_display_name).hexdigest()
+            except Exception, e:
+                outf.write('%s' % e)
+                skipped_comments += 1
+                continue
+        if 'author_id' in comment:
+            comment['author_id'] = str(comment['author_id'])
+        if 'parent_id' in comment:
+            comment['parent_id'] = str(comment['parent_id'])
+            if comment['parent_id'] == '0' or comment['parent_id'] == '' or comment['parent_id'] == 'None':
+                comment.pop('parent_id')
+        if 'id' in comment:
+            comment['id'] = str(comment['id'])
+        if 'created' in conv:
+            if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
+                comment['created'] = comment['created'] + 'Z'
+        cleaned_comments.append(comment)
+    return cleaned_comments
 
 def sanitize_users(filename):
     skipped_users = 0

@@ -1,4 +1,5 @@
 from validator import validate
+import sys
 
 def validate_archive(infile, outfile='validator_results.txt'):
 	validate(infile, outfile, is_archive=True)

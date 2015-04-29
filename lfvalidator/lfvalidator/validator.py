@@ -8,6 +8,7 @@ import re
 import sys
 import time
 import hashlib
+import os
 
 error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
 error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'anyOf': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
@@ -39,7 +40,10 @@ critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please 
 
 def validate(infile, outfile='validator_results.txt', is_archive=False):
     start = time.time()
-    cleaned_file = sanitize(infile, is_archive)
+    if is_archive:
+        archive_filename = 'archive_' + os.path.basename(infile)
+        sanitize(infile, archive_filename, True, True)
+    cleaned_file = sanitize(infile, '', is_archive, False)
     inf = open(cleaned_file)
     outf = open(outfile, 'w')
     timestamp = str(int(time.time()))
