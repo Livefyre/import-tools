@@ -43,7 +43,7 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
     if is_archive:
         archive_filename = 'archive_' + os.path.basename(infile)
         sanitize(infile, archive_filename, True, True)
-    cleaned_file = sanitize(infile, '', is_archive, False)
+    cleaned_file = sanitize(infile, is_archive=is_archive)
     inf = open(cleaned_file)
     outf = open(outfile, 'w')
     timestamp = str(int(time.time()))
