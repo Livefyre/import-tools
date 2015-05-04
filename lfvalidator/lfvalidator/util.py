@@ -47,7 +47,7 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
             conv['is_archive'] = True
             conv['archive_count'] = len(conv['comments'])
             conv.pop('comments')
-        conv['comments'] = sanitize_comments(conv, is_archive)
+        conv['comments'] = sanitize_comments(conv, is_archive, comment_keys)
         outf.write(json.dumps(conv) + '\n')
 
     results.write('cleaned file: %s\n' % outf.name)
@@ -59,7 +59,7 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
 
     return outf.name
 
-def sanitize_comments(conv, is_archive):
+def sanitize_comments(conv, is_archive, comment_keys):
     cleaned_comments = []
     parent_ids = []
     if 'comments' not in conv:
