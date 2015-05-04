@@ -6,10 +6,13 @@ import os
 
 conv_keys = ['source', 'title', 'created', 'comments', 'id', 'tags', 'allow_comments']
 comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
+archive_comment_keys = ['id', 'imported_display_name','author_id', 'body_html', 'created', 'parent_id']
 user_keys = ['id', 'display_name', 'tags', 'name', 'email', 'profile_url', 'settings_url', 'websites', 'location', 'bio', 'email_notifications', 'autofollow_conversations']
 email_keys = ['comments', 'moderator_comments', 'moderator_flags', 'replies', 'likes']
 
 def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
+    if is_archive:
+        comment_keys = archive_comment_keys
     skipped_comments = 0
     skipped_convs = 0
     if not outfile:
@@ -17,7 +20,6 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
     inf = open(filename)
     outf = open(outfile, 'w')
     results = open('sanitze_results.txt', 'w')
-
     for i, line in enumerate(inf):
         try:
             conv = json.loads(line)
@@ -34,6 +36,8 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
         if 'id' in conv:
             conv['id'] = str(conv['id'])
         if 'created' in conv:
+            if is_archive:
+                conv['created'] = conv['created'][:19] + 'Z' # double check this is always the length
             if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
                 conv['created'] = conv['created'] + 'Z'
         if 'allow_comments' in conv:
@@ -57,6 +61,7 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
 
 def sanitize_comments(conv, is_archive):
     cleaned_comments = []
+    parent_ids = []
     if 'comments' not in conv:
         return []
     for comment in conv['comments']:
@@ -77,11 +82,16 @@ def sanitize_comments(conv, is_archive):
             comment['parent_id'] = str(comment['parent_id'])
             if comment['parent_id'] == '0' or comment['parent_id'] == '' or comment['parent_id'] == 'None':
                 comment.pop('parent_id')
+            if is_archive and comment['parent_id'] not in parent_ids:
+                comment.pop('parent_id')
         if 'id' in comment:
             comment['id'] = str(comment['id'])
         if 'created' in conv:
+            if is_archive:
+                comment['created'] = comment['created'][:19] + 'Z'
             if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
                 comment['created'] = comment['created'] + 'Z'
+        parent_ids.append(str(comment['id']))
         cleaned_comments.append(comment)
     return cleaned_comments
 
@@ -111,4 +121,3 @@ def sanitize_users(filename):
         f.close()
 
     return outf.name
-
