@@ -5,12 +5,13 @@ import re
 import os
 
 conv_keys = ['source', 'title', 'created', 'comments', 'id', 'tags', 'allow_comments']
-comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
+first_class_comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
 archive_comment_keys = ['id', 'imported_display_name','author_id', 'body_html', 'created', 'parent_id']
 user_keys = ['id', 'display_name', 'tags', 'name', 'email', 'profile_url', 'settings_url', 'websites', 'location', 'bio', 'email_notifications', 'autofollow_conversations']
 email_keys = ['comments', 'moderator_comments', 'moderator_flags', 'replies', 'likes']
 
 def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
+    comment_keys = first_class_comment_keys
     if is_archive:
         comment_keys = archive_comment_keys
     skipped_comments = 0
@@ -43,6 +44,8 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
         if 'allow_comments' in conv:
             if conv['allow_comments'] == 'false':
                 conv['allow_comments'] = False
+            elif conv['allow_comments'] == 'true' or conv['allow_comments'] == True:
+                conv.pop('allow_comments')
         if remove_comments and 'comments' in conv:
             conv['is_archive'] = True
             conv['archive_count'] = len(conv['comments'])
