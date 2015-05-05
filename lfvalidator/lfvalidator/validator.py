@@ -11,7 +11,7 @@ import hashlib
 import os
 
 error_msg = {'body_html': 'has malformed content: ', 'source': 'is not a properly formed URL', 'title': 'cannot have HTML entities', 'created': 'is not a ISO8601 timestamp', 'imported_email': 'is not a properly formed email address', 'imported_url': 'is not a valid url', 'likes': 'likes cannot contain duplicate values', 'tags': 'tags cannot contain duplicate values'}
-error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improperly formated timestamp, url, or email address', 'anyOf': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
+error_summary = {'required': 'missing a required field', 'type': 'an incorrect type for a field', 'pattern': 'improper formatting', 'anyOf': 'improperly formated timestamp, url, or email address', 'not': 'malformed content in a comment body', 'uniqueItems': 'duplicate author ID values for likes', 'maxLength': 'longer than maximum length', 'minLength': 'shorter than minimum length', 'invalid': 'non-existent parent ID', 'duplicate comment': 'duplicate comment id values', 'duplicate conv': 'duplicate collection id values'}
 invalid_tags = re.compile(r'(?=<(?!/?(?:img(?:\s+src\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*)|a(?:\s+(?:href|target)\s*=\s*(?:"[^"]*"|\'[^\']*\')\s*){0,2}|a|img|span|label|p|br|br/|strong|em|u|blockquote|ul|li|ol|pre|body|b|i)>))</?[^>]+>')
 first_word = re.compile(r'^.{2}([^\']+).(.*)$')
 new_lines = re.compile(r'\n')
@@ -61,21 +61,18 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
             j = json.loads(l)
             errors = sorted(validator.iter_errors(j), key=lambda e: e.path)
 
-            # should put parent id check / id check here before we continue
+            # check for duplicate conv/comment id, and unreferenced parent ids
+            has_bad_ids = check_ids(j, conv_ids, counter, outf)
 
-            if not errors:
+            if not errors and not has_bad_ids:
                 continue
             print '\nErrors on line %d:' % (i+1)
             outf.write('\nErrors on line %d:\n' % (i+1))
-            if j['id'] in conv_ids:
-                print 'Duplicate id field for collection id %s' % j['id']
-                outf.write('Duplicate id field for collection id %s\n' % j['id'])
-                k = 'duplicate conv,id'
-                counter[k] += 1
-            conv_ids.append(j['id'])
+            if has_bad_ids:
+                print ''.join(has_bad_ids)
+                outf.write(''.join(has_bad_ids))
             for error in errors:
                 print_error(error, j, outf, counter)
-            check_parent_ids(j, counter, outf)
         except ValueError, e:
             print '\nError, bad JSON on line %d' % (i+1)
             outf.write('\nError, bad JSON on line %d\n' % (i+1))
@@ -171,27 +168,31 @@ def set_critical_messages(errors_dict):
     for k in vals_to_check:
         critical_flags[k] = True
 
-def check_parent_ids(conv, counter, outf):
-    if not conv['comments']:
-        return
+def check_ids(conv, conv_ids, counter, outf):
+    errors = []
     parent_ids = []
     comment_ids = []
+    if conv['id'] in conv_ids:
+        errors.append('Duplicate id field for collection id %s\n' % conv['id'])
+        k = 'duplicate conv,id'
+        counter[k] += 1
+    conv_ids.append(conv['id'])
+    if not conv['comments']:
+        return errors
     for comment in conv['comments']:
         parent_ids.append(comment['id'])
         if comment['id'] in comment_ids:
-            print 'Duplicate id field for comment id %s' % comment['id']
-            outf.write('Duplicate id field for comment id %s\n' % comment['id'])
+            errors.append('Duplicate id field for comment id %s\n' % comment['id'])
             k = 'duplicate comment,id'
             counter[k] += 1
         comment_ids.append(comment['id'])
         parent_id = comment.get('parent_id')
         if parent_id:
             if parent_id not in parent_ids:
-                print 'Comment with id %s refers to non-existent parent_id %s' % (comment['id'], parent_id)
-                outf.write('Comment with id %s refers to non-existent parent_id %s\n' % (comment['id'], parent_id))
+                errors.append('Comment with id %s refers to non-existent parent_id %s\n' % (comment['id'], parent_id))
                 k = 'invalid,parent_id'
                 counter[k] += 1
-
+    return errors
 
 def generate_receipt(filename, outf):
     receipt = open('receipt.txt', 'w')
