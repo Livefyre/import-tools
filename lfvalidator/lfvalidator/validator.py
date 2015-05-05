@@ -60,6 +60,9 @@ def validate(infile, outfile='validator_results.txt', is_archive=False):
         try:
             j = json.loads(l)
             errors = sorted(validator.iter_errors(j), key=lambda e: e.path)
+
+            # should put parent id check / id check here before we continue
+
             if not errors:
                 continue
             print '\nErrors on line %d:' % (i+1)
