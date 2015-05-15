@@ -22,6 +22,10 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
     outf = open(outfile, 'w')
     results = open('sanitze_results.txt', 'w')
     for i, line in enumerate(inf):
+        if i == 0:
+            # remove BOM from file if present
+            if line[:3] == '\xef\xbb\xbf':
+                line = line[3:]
         try:
             conv = json.loads(line)
         except Exception, e:
@@ -71,6 +75,9 @@ def sanitize_comments(conv, is_archive, comment_keys):
         for k in comment.keys():
             if k not in comment_keys:
                 comment.pop(k)
+        if 'body_html' in comment:
+            if not comment['body_html']:
+                continue
         if is_archive and 'author_id' not in comment:
             try:
                 clean_display_name = re.sub(r'[^\x00-\x7F]+',' ', comment['imported_display_name'])
