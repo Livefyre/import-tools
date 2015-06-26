@@ -3,7 +3,7 @@
   "description": "schema for importing reviews objects",
   "title": "Reviews Schema",
   "type": "object",
-  "required": ["source", "title", "created", "id", "reviews", "dimensions"],
+  "required": ["source", "title", "created", "id", "reviews"],
   "additionalProperties": false,
   "properties": {
     "source": { "$ref": "#/definitions/url" },
