@@ -38,6 +38,8 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
         for k in conv.keys():
             if k not in conv_keys:
                 conv.pop(k)
+            elif conv[k] is None:
+                conv.pop(k)
         if 'id' in conv:
             conv['id'] = str(conv['id'])
         if 'created' in conv:
@@ -75,6 +77,8 @@ def sanitize_comments(conv, is_archive, comment_keys):
         for k in comment.keys():
             if k not in comment_keys:
                 comment.pop(k)
+            elif comment[k] is None:
+                comment.pop(k)
         if 'body_html' in comment:
             if not comment['body_html']:
                 continue
@@ -99,7 +103,7 @@ def sanitize_comments(conv, is_archive, comment_keys):
         if 'created' in conv:
             if is_archive:
                 comment['created'] = comment['created'][:19] + 'Z'
-            if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in conv['created']:
+            if comment['created'][-1] != 'Z' and '+' not in comment['created'] and '-' not in comment['created']:
                 comment['created'] = comment['created'] + 'Z'
         parent_ids.append(str(comment['id']))
         cleaned_comments.append(comment)
