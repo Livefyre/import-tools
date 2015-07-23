@@ -3,6 +3,7 @@ import json
 import sys
 import re
 import os
+import time
 
 conv_keys = ['source', 'title', 'created', 'comments', 'id', 'tags', 'allow_comments']
 first_class_comment_keys = ['id', 'imported_display_name', 'imported_email', 'imported_url', 'author_id', 'body_html', 'created', 'parent_id', 'likes']
@@ -11,6 +12,8 @@ user_keys = ['id', 'display_name', 'tags', 'name', 'email', 'profile_url', 'sett
 email_keys = ['comments', 'moderator_comments', 'moderator_flags', 'replies', 'likes']
 
 def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
+    print 'Sanitizing file...'
+    start = time.time()
     comment_keys = first_class_comment_keys
     if is_archive:
         comment_keys = archive_comment_keys
@@ -56,8 +59,14 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
             conv['is_archive'] = True
             conv['archive_count'] = len(conv['comments'])
             conv.pop('comments')
+        conv['comments'] = sorted(conv['comments'], key=lambda k: k['created'])
         conv['comments'] = sanitize_comments(conv, is_archive, comment_keys)
         outf.write(json.dumps(conv) + '\n')
+
+    end = time.time()
+    delta = end - start
+
+    print 'Sanitized file in %s seconds' % delta
 
     results.write('cleaned file: %s\n' % outf.name)
     results.write('skipped %d convs because bad JSON\n' % skipped_convs)
