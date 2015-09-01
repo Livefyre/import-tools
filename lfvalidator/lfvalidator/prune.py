@@ -1,5 +1,6 @@
 import json
 import sys
+from subprocess import check_output as cmd
 
 def prune_users(comment_file, user_file): 
     commenters_set = set()
@@ -45,5 +46,7 @@ def prune_users(comment_file, user_file):
      
     for f in [comment_file, full_user_file, pruned_user_file, errors_file]:
         f.close()
+
+    cmd(['rm', '-rf', user_file])
 
     return pruned_user_file.name
