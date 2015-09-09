@@ -55,12 +55,14 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
                 conv['allow_comments'] = False
             elif conv['allow_comments'] == 'true' or conv['allow_comments'] == True:
                 conv.pop('allow_comments')
-        if remove_comments and 'comments' in conv:
-            conv['is_archive'] = True
-            conv['archive_count'] = len(conv['comments'])
-            conv.pop('comments')
-        conv['comments'] = sorted(conv['comments'], key=lambda k: k['created'])
-        conv['comments'] = sanitize_comments(conv, is_archive, comment_keys)
+        if 'comments' in conv:
+            if remove_comments:
+                conv['is_archive'] = True
+                conv['archive_count'] = len(conv['comments'])
+                conv['comments'] = []
+            else:
+                conv['comments'] = sorted(conv['comments'], key=lambda k: k['created'])
+                conv['comments'] = sanitize_comments(conv, is_archive, comment_keys)
         outf.write(json.dumps(conv) + '\n')
 
     end = time.time()
