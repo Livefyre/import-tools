@@ -98,7 +98,6 @@ def sanitize_comments(conv, is_archive, comment_keys):
                 clean_display_name = re.sub(r'[^\x00-\x7F]+',' ', comment['imported_display_name'])
                 comment['author_id'] = md5(clean_display_name).hexdigest()
             except Exception, e:
-                outf.write('%s' % e)
                 skipped_comments += 1
                 continue
         if 'author_id' in comment:
@@ -129,7 +128,6 @@ def sanitize_users(filename):
         try:
             user = json.loads(line)
         except ValueError, e:
-            outf.write('Error on line %d: %s' % (i+1,e))
             skipped_users += 1
             continue
         for k in user.keys():
