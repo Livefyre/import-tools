@@ -106,7 +106,7 @@ def sanitize_comments(conv, is_archive, comment_keys):
             comment['parent_id'] = str(comment['parent_id'])
             if comment['parent_id'] == '0' or comment['parent_id'] == '' or comment['parent_id'] == 'None':
                 comment.pop('parent_id')
-            if is_archive and comment['parent_id'] not in parent_ids:
+            elif is_archive and comment['parent_id'] not in parent_ids:
                 comment.pop('parent_id')
         if 'id' in comment:
             comment['id'] = str(comment['id'])
