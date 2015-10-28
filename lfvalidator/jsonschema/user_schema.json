@@ -15,7 +15,9 @@
       "additionalProperties": false,
       "properties": {
         "first": { "type": "string"},
-        "last": { "type": "string"}
+        "last": { "type": "string"},
+        "formatted": { "type": "string"},
+        "middle": { "type": "string"}
       }
     },
     "email": { "$ref": "#/definitions/email" },
