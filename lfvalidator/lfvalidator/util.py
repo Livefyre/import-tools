@@ -140,7 +140,7 @@ def sanitize_users(filename):
                     user['email_notifications'].pop(k)
         if user.get('autofollow_conversations'):
             val = user.get('autofollow_conversations')
-            if type(val) == str:
+            if isinstance(val, basestring):
                 if val.lower() == 'false':
                     user['autofollow_conversations'] = False
         outf.write(json.dumps(user) + '\n')
