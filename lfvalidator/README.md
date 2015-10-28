@@ -1,6 +1,6 @@
 lfvalidator
 =========
-lfvalidator is a package which contains an import file validator and its components. It is intended to be run each time a customer gives us data to import.
+lfvalidator is a package which contains an import file validator and its components. It is intended to be run each time a customer gives us data to import. All of the validator are available to download in the executables folder.
 
 Usage
 -----
