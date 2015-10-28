@@ -51,9 +51,9 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
             if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
                 conv['created'] = conv['created'] + 'Z'
         if 'allow_comments' in conv:
-            if conv['allow_comments'] == 'false':
+            if conv['allow_comments'].lower() == 'false':
                 conv['allow_comments'] = False
-            elif conv['allow_comments'] == 'true' or conv['allow_comments'] == True:
+            elif conv['allow_comments'].lower() == 'true' or conv['allow_comments'] == True:
                 conv.pop('allow_comments')
         if 'comments' in conv:
             if remove_comments:
@@ -131,13 +131,18 @@ def sanitize_users(filename):
             skipped_users += 1
             continue
         for k in user.keys():
-            if k not in user_keys:
+            if k not in user_keys or not user[k]:
                 user.pop(k)
         user['id'] = str(user['id'])
         if user.get('email_notifications'):
             for k in user['email_notifications'].keys():
                 if k not in email_keys:
                     user['email_notifications'].pop(k)
+        if user.get('autofollow_conversations'):
+            val = user.get('autofollow_conversations')
+            if type(val) == str:
+                if val.lower() == 'false':
+                    user['autofollow_conversations'] = False
         outf.write(json.dumps(user) + '\n')
 
     for f in [inf, outf]:

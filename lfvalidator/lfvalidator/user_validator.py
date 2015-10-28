@@ -10,9 +10,12 @@ import sys
 import time
 import hashlib
 
-def validate_users(comment_file, user_file, outfile='user_validator_results.txt'):
+def validate_users(comment_file, user_file, skip_prune=False, outfile='user_validator_results.txt'):
     sanitized_user_file = sanitize_users(user_file)
-    pruned_user_file = prune_users(comment_file, sanitized_user_file)
+    if not skip_prune:
+        pruned_user_file = prune_users(comment_file, sanitized_user_file)
+    else:
+        pruned_user_file = sanitized_user_file
     outf = open(outfile, 'w')
     timestamp = str(int(time.time()))
     r = requests.get('https://raw.githubusercontent.com/Livefyre/integration-tools/master/lfvalidator/jsonschema/user_schema.json?%s' % timestamp)
@@ -56,8 +59,8 @@ def validate_users(comment_file, user_file, outfile='user_validator_results.txt'
 
 def main():
     args = sys.argv[1:]
-    if len(args) not in (1,2,3):
-        print 'Usage: python user_validator.py [comment file] [user file] [~optional output file]'
+    if len(args) not in (1,2,3,4):
+        print 'Usage: python user_validator.py [comment file] [user file] [~optional skip user prune] [~optional output file]'
         sys.exit(0)
     validate_users(*args)
 
