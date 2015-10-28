@@ -41,7 +41,7 @@ critical_error_msgs = {'has_bad_tags': 'Your file has invalid HTML tags. Please 
 def validate(infile, outfile='validator_results.txt', is_archive=False):
     start = time.time()
     if is_archive:
-        archive_filename = 'archive_' + os.path.basename(infile)
+        archive_filename = 'collections_only_' + os.path.basename(infile)
         sanitize(infile, archive_filename, True, True)
     cleaned_file = sanitize(infile, is_archive=is_archive)
     inf = open(cleaned_file)
