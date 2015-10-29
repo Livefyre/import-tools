@@ -17,7 +17,7 @@ This will produce an output file in the current directory:
 ```
 ./users_validator comments_file.txt users_file.txt
 ```
-This will produce an output filein the current directory:
+This will produce an output file in the current directory:
 - fixed_users_file.txt : A sanitized users file, which only contains users that are in the comments file. Users which are not in the comments file will not be in this file.
 
 If you'd like to import all users (and not filter out the ones that are not in the comments file), you can do this: 
