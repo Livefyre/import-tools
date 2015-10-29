@@ -1,18 +1,39 @@
 lfvalidator
 =========
-lfvalidator is a package which contains an import file validator and its components. It is intended to be run each time a customer gives us data to import. All of the validator are available to download in the executables folder.
+lfvalidator is a package which contains import file validators of multiple types. It is intended to be run each time a customer gives us data to import. All of the validator are available for download in the executables folder.
 
 Usage
 -----
-The validator executable is run on the command line:
+All validators are run on the command line. All of the validators will create a file called validator_results.txt in the current directory, which contains all of the errors listed by line number found during validation.
+
+## Interactive Comments Validator
 ```
 ./validator file.txt
 ```
-This will produce several output files:
-- validator_results.txt : Contains all of the errors caught by the validator, listed by line number
+This will produce an output file in the current directory:
 - fixed_file.txt : Sanitized version of the input file. For DE's, this is the file that should be imported.
-- sanitize_results.txt : Output file of any errors that occured while the sanitized file was created.
-- receipt.txt : md5 hash of the validated file.
+
+## Users Validator
+```
+./users_validator comments_file.txt users_file.txt
+```
+This will produce an output filein the current directory:
+- fixed_users_file.txt : A sanitized users file, which only contains users that are in the comments file. Users which are not in the comments file will not be in this file.
+
+If you'd like to import all users (and not filter out the ones that are not in the comments file), you can do this: 
+```
+./users_validator comments_file.txt users_file.txt True
+```
+This will produce a fixed_users_file.txt which contains ALL of the users in the original users file, even if the users are not contained in the comments file.
+
+## Archive Import Validator
+```
+./archive_validator file.txt
+```
+This will produce several output files:
+- fixed_file.txt: Contains the archive content which needs to be run with the archive importer.
+- collections_only_file.txt: Contains the collections file which contains the archive comment counts. This can be run by DEs with the interactive comment importer.
+
 
 Making the executable
 ---------------------
