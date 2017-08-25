@@ -51,9 +51,9 @@ def sanitize(filename, outfile='', is_archive=False, remove_comments=False):
             if conv['created'][-1] != 'Z' and '+' not in conv['created'] and '-' not in conv['created']:
                 conv['created'] = conv['created'] + 'Z'
         if 'allow_comments' in conv:
-            if conv['allow_comments'].lower() == 'false':
+            if str(conv['allow_comments']).lower() == 'false':
                 conv['allow_comments'] = False
-            elif conv['allow_comments'].lower() == 'true' or conv['allow_comments'] == True:
+            elif str(conv['allow_comments']).lower() == 'true' or conv['allow_comments'] == True:
                 conv.pop('allow_comments')
         if 'comments' in conv:
             if remove_comments:
